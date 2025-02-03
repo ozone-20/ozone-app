@@ -17,6 +17,7 @@ export default function Aouth() {
             console.log(result.user.photoURL)
             const res = await fetch("https://ozone-website-inky.vercel.app/api/auth/google", {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     'Content-Type': 'application/json',
                 },
