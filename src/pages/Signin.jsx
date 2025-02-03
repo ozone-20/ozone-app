@@ -27,6 +27,7 @@ export default function signin() {
             dispatch(signInStart())
 
             const res = await fetch("https://ozone-website-inky.vercel.app/api/auth/signin", {
+                credentials: "include",
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',

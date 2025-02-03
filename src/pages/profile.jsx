@@ -96,6 +96,7 @@ export default function profile() {
             dispatch(updateUserStart())
 
             const res = await fetch(`https://ozone-website-inky.vercel.app/api/user/update/${currentUser._id}`, {
+                credentials: "include",
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
@@ -123,6 +124,7 @@ export default function profile() {
             dispatch(deleteUserStart())
 
             const res = await fetch(`https://ozone-website-inky.vercel.app/api/user/delete/${currentUser._id}`, {
+                credentials: "include",
                 method: 'DELETE',
             })
 
