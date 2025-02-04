@@ -1,298 +1,298 @@
-// import React, { useEffect, useRef, useState, useCallback } from "react";
-// // If you installed via npm, you can import from "@mediapipe/tasks-vision" 
-// // For demonstration, we keep the Skypack import:
-// import {
-//   PoseLandmarker,
-//   FilesetResolver,
-//   DrawingUtils,
-// } from "https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+// If you installed via npm, you can import from "@mediapipe/tasks-vision" 
+// For demonstration, we keep the Skypack import:
+import {
+  PoseLandmarker,
+  FilesetResolver,
+  DrawingUtils,
+} from "https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0";
 
-// const Plank = () => {
-//   // State to hold the loaded pose landmarker.
-//   const [poseLandmarker, setPoseLandmarker] = useState(null);
-//   // State to track whether we are in IMAGE or VIDEO mode.
-//   const [runningMode, setRunningMode] = useState("IMAGE");
-//   // State to track if the webcam is currently running.
-//   const [webcamRunning, setWebcamRunning] = useState(false);
+const Plank = () => {
+  // State to hold the loaded pose landmarker.
+  const [poseLandmarker, setPoseLandmarker] = useState(null);
+  // State to track whether we are in IMAGE or VIDEO mode.
+  const [runningMode, setRunningMode] = useState("IMAGE");
+  // State to track if the webcam is currently running.
+  const [webcamRunning, setWebcamRunning] = useState(false);
 
-//   // Refs for webcam video and canvas.
-//   const videoRef = useRef(null);
-//   const canvasRef = useRef(null);
-//   // Ref to store the last video time so that we only process new frames.
-//   const lastVideoTimeRef = useRef(-1);
+  // Refs for webcam video and canvas.
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  // Ref to store the last video time so that we only process new frames.
+  const lastVideoTimeRef = useRef(-1);
 
-//   // When the component mounts (or runningMode changes), create the PoseLandmarker.
-//   useEffect(() => {
-//     const createPoseLandmarker = async () => {
-//       console.log("Loading the pose landmarker...");
-//       try {
-//         const vision = await FilesetResolver.forVisionTasks(
-//           "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
-//         );
+  // When the component mounts (or runningMode changes), create the PoseLandmarker.
+  useEffect(() => {
+    const createPoseLandmarker = async () => {
+      console.log("Loading the pose landmarker...");
+      try {
+        const vision = await FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+        );
 
-//         // Force CPU if GPU is problematic, by switching delegate: "CPU"
-//         const poseLM = await PoseLandmarker.createFromOptions(vision, {
-//           baseOptions: {
-//             modelAssetPath:
-//               "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
-//             delegate: "GPU",
-//             // delegate: "CPU", // Uncomment if your GPU has issues
-//           },
-//           runningMode,
-//           numPoses: 2,
-//         });
+        // Force CPU if GPU is problematic, by switching delegate: "CPU"
+        const poseLM = await PoseLandmarker.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+            delegate: "GPU",
+            // delegate: "CPU", // Uncomment if your GPU has issues
+          },
+          runningMode,
+          numPoses: 2,
+        });
 
-//         console.log("Pose landmarker loaded successfully!");
-//         setPoseLandmarker(poseLM);
-//       } catch (error) {
-//         console.error("Error loading pose landmarker:", error);
-//       }
-//     };
+        console.log("Pose landmarker loaded successfully!");
+        setPoseLandmarker(poseLM);
+      } catch (error) {
+        console.error("Error loading pose landmarker:", error);
+      }
+    };
 
-//     createPoseLandmarker();
-//   }, [runningMode]);
+    createPoseLandmarker();
+  }, [runningMode]);
 
-//   // ----- Demo 1: Detecting poses on images -----
-//   const handleImageClick = async (e) => {
-//     if (!poseLandmarker) {
-//       console.warn("Wait for poseLandmarker to load before clicking!");
-//       return;
-//     }
+  // ----- Demo 1: Detecting poses on images -----
+  const handleImageClick = async (e) => {
+    if (!poseLandmarker) {
+      console.warn("Wait for poseLandmarker to load before clicking!");
+      return;
+    }
 
-//     // If the model is running in VIDEO mode, switch back to IMAGE mode.
-//     if (runningMode === "VIDEO") {
-//       console.log("Switching model to IMAGE mode for image detection...");
-//       setRunningMode("IMAGE");
-//       await poseLandmarker.setOptions({ runningMode: "IMAGE" });
-//     }
+    // If the model is running in VIDEO mode, switch back to IMAGE mode.
+    if (runningMode === "VIDEO") {
+      console.log("Switching model to IMAGE mode for image detection...");
+      setRunningMode("IMAGE");
+      await poseLandmarker.setOptions({ runningMode: "IMAGE" });
+    }
 
-//     // Remove any existing canvas overlays in the image container.
-//     const container = e.currentTarget.parentElement;
-//     container.querySelectorAll(".canvas-overlay").forEach((canvas) => {
-//       canvas.remove();
-//     });
+    // Remove any existing canvas overlays in the image container.
+    const container = e.currentTarget.parentElement;
+    container.querySelectorAll(".canvas-overlay").forEach((canvas) => {
+      canvas.remove();
+    });
 
-//     // Run detection on the clicked image.
-//     poseLandmarker.detect(e.currentTarget, (result) => {
-//       console.log("Image detection result:", result);
+    // Run detection on the clicked image.
+    poseLandmarker.detect(e.currentTarget, (result) => {
+      console.log("Image detection result:", result);
 
-//       // Create a canvas overlay on the image.
-//       const overlayCanvas = document.createElement("canvas");
-//       overlayCanvas.className = "canvas-overlay";
-//       overlayCanvas.width = e.currentTarget.naturalWidth;
-//       overlayCanvas.height = e.currentTarget.naturalHeight;
-//       // Position the canvas absolutely over the image.
-//       overlayCanvas.style.position = "absolute";
-//       overlayCanvas.style.left = "0px";
-//       overlayCanvas.style.top = "0px";
-//       overlayCanvas.style.width = `${e.currentTarget.width}px`;
-//       overlayCanvas.style.height = `${e.currentTarget.height}px`;
-//       container.appendChild(overlayCanvas);
+      // Create a canvas overlay on the image.
+      const overlayCanvas = document.createElement("canvas");
+      overlayCanvas.className = "canvas-overlay";
+      overlayCanvas.width = e.currentTarget.naturalWidth;
+      overlayCanvas.height = e.currentTarget.naturalHeight;
+      // Position the canvas absolutely over the image.
+      overlayCanvas.style.position = "absolute";
+      overlayCanvas.style.left = "0px";
+      overlayCanvas.style.top = "0px";
+      overlayCanvas.style.width = `${e.currentTarget.width}px`;
+      overlayCanvas.style.height = `${e.currentTarget.height}px`;
+      container.appendChild(overlayCanvas);
 
-//       const canvasCtx = overlayCanvas.getContext("2d");
-//       const drawingUtils = new DrawingUtils(canvasCtx);
+      const canvasCtx = overlayCanvas.getContext("2d");
+      const drawingUtils = new DrawingUtils(canvasCtx);
 
-//       // Draw landmarks and connectors for each detected pose.
-//       for (const landmark of result.landmarks) {
-//         drawingUtils.drawLandmarks(landmark, {
-//           radius: (data) => DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1),
-//         });
-//         drawingUtils.drawConnectors(
-//           landmark,
-//           PoseLandmarker.POSE_CONNECTIONS
-//         );
-//       }
-//     });
-//   };
+      // Draw landmarks and connectors for each detected pose.
+      for (const landmark of result.landmarks) {
+        drawingUtils.drawLandmarks(landmark, {
+          radius: (data) => DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1),
+        });
+        drawingUtils.drawConnectors(
+          landmark,
+          PoseLandmarker.POSE_CONNECTIONS
+        );
+      }
+    });
+  };
 
-//   // ----- Demo 2: Webcam continuous detection -----
-//   const enableCam = async () => {
-//     if (!poseLandmarker) {
-//       console.warn("Wait! poseLandmarker not loaded yet.");
-//       return;
-//     }
+  // ----- Demo 2: Webcam continuous detection -----
+  const enableCam = async () => {
+    if (!poseLandmarker) {
+      console.warn("Wait! poseLandmarker not loaded yet.");
+      return;
+    }
 
-//     // Toggle on/off logic:
-//     if (webcamRunning) {
-//       console.log("Turning off webcam...");
-//       setWebcamRunning(false);
-//       if (videoRef.current && videoRef.current.srcObject) {
-//         const tracks = videoRef.current.srcObject.getTracks();
-//         tracks.forEach((track) => track.stop());
-//       }
-//     } else {
-//       console.log("Requesting webcam access...");
-//       setWebcamRunning(true);
+    // Toggle on/off logic:
+    if (webcamRunning) {
+      console.log("Turning off webcam...");
+      setWebcamRunning(false);
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach((track) => track.stop());
+      }
+    } else {
+      console.log("Requesting webcam access...");
+      setWebcamRunning(true);
 
-//       try {
-//         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-//         if (videoRef.current) {
-//           // Assign the stream to the video element
-//           videoRef.current.srcObject = stream;
-//           // Some browsers need an explicit play():
-//           await videoRef.current.play();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          // Assign the stream to the video element
+          videoRef.current.srcObject = stream;
+          // Some browsers need an explicit play():
+          await videoRef.current.play();
 
-//           // Start predictions once the video is loaded
-//           videoRef.current.addEventListener("loadeddata", () => {
-//             console.log("Video is loaded; starting predictions...");
-//             predictWebcam();
-//           });
-//         }
-//       } catch (err) {
-//         console.error("Error accessing webcam:", err);
-//       }
-//     }
-//   };
+          // Start predictions once the video is loaded
+          videoRef.current.addEventListener("loadeddata", () => {
+            console.log("Video is loaded; starting predictions...");
+            predictWebcam();
+          });
+        }
+      } catch (err) {
+        console.error("Error accessing webcam:", err);
+      }
+    }
+  };
 
-//   const predictWebcam = useCallback(async () => {
-//     if (!videoRef.current || !canvasRef.current || !poseLandmarker) {
-//       console.warn("Missing references or poseLandmarker not ready.");
-//       return;
-//     }
+  const predictWebcam = useCallback(async () => {
+    if (!videoRef.current || !canvasRef.current || !poseLandmarker) {
+      console.warn("Missing references or poseLandmarker not ready.");
+      return;
+    }
 
-//     // See how often we're calling this
-//     console.log("predictWebcam called...");
+    // See how often we're calling this
+    console.log("predictWebcam called...");
 
-//     const video = videoRef.current;
-//     const canvas = canvasRef.current;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
 
-//     // Confirm the video is actually playing by logging currentTime
-//     console.log("Video currentTime:", video.currentTime);
+    // Confirm the video is actually playing by logging currentTime
+    console.log("Video currentTime:", video.currentTime);
 
-//     // Switch to VIDEO mode if it's in IMAGE mode
-//     if (runningMode === "IMAGE") {
-//       console.log("Switching model to VIDEO mode...");
-//       setRunningMode("VIDEO");
-//       await poseLandmarker.setOptions({ runningMode: "VIDEO" });
-//     }
+    // Switch to VIDEO mode if it's in IMAGE mode
+    if (runningMode === "IMAGE") {
+      console.log("Switching model to VIDEO mode...");
+      setRunningMode("VIDEO");
+      await poseLandmarker.setOptions({ runningMode: "VIDEO" });
+    }
 
-//     // Only run detection if there's a new video frame
-//     const startTimeMs = performance.now();
-//     if (lastVideoTimeRef.current !== video.currentTime) {
-//       lastVideoTimeRef.current = video.currentTime;
-//       poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
-//         console.log("Detection result:", result);
+    // Only run detection if there's a new video frame
+    const startTimeMs = performance.now();
+    if (lastVideoTimeRef.current !== video.currentTime) {
+      lastVideoTimeRef.current = video.currentTime;
+      poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
+        console.log("Detection result:", result);
 
-//         const ctx = canvas.getContext("2d");
-//         ctx.save();
-//         // Clear previous drawings
-//         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const ctx = canvas.getContext("2d");
+        ctx.save();
+        // Clear previous drawings
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-//         const drawingUtils = new DrawingUtils(ctx);
-//         // Draw pose landmarks and connectors
-//         for (const landmark of result.landmarks) {
-//           drawingUtils.drawLandmarks(landmark, {
-//             radius: (data) => DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1),
-//           });
-//           drawingUtils.drawConnectors(
-//             landmark,
-//             PoseLandmarker.POSE_CONNECTIONS
-//           );
-//         }
-//         ctx.restore();
-//       });
-//     } else {
-//       console.log("No new video frame; skipping detection...");
-//     }
+        const drawingUtils = new DrawingUtils(ctx);
+        // Draw pose landmarks and connectors
+        for (const landmark of result.landmarks) {
+          drawingUtils.drawLandmarks(landmark, {
+            radius: (data) => DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1),
+          });
+          drawingUtils.drawConnectors(
+            landmark,
+            PoseLandmarker.POSE_CONNECTIONS
+          );
+        }
+        ctx.restore();
+      });
+    } else {
+      console.log("No new video frame; skipping detection...");
+    }
 
-//     // Keep predicting if the webcam is on
-//     if (webcamRunning) {
-//       window.requestAnimationFrame(predictWebcam);
-//     } else {
-//       console.log("Webcam off; stopping the prediction loop.");
-//     }
-//   }, [poseLandmarker, runningMode, webcamRunning]);
+    // Keep predicting if the webcam is on
+    if (webcamRunning) {
+      window.requestAnimationFrame(predictWebcam);
+    } else {
+      console.log("Webcam off; stopping the prediction loop.");
+    }
+  }, [poseLandmarker, runningMode, webcamRunning]);
 
-//   return (
-//     <div className="p-8">
-//       <h1 className="text-3xl font-bold text-teal-700 mb-4">
-//         Pose detection using the MediaPipe PoseLandmarker task
-//       </h1>
+  return (
+    <div className="p-8">
+      <h1 className="text-3xl font-bold text-teal-700 mb-4">
+        Pose detection using the MediaPipe PoseLandmarker task
+      </h1>
 
-//       <section id="demos">
-//         {/* Demo 1: Image detection */}
-//         <h2 className="text-2xl font-semibold mt-8">Demo: Detecting Images</h2>
-//         <p className="mb-4">
-//           <b>Click on an image below</b> to see the key landmarks of the body.
-//         </p>
-//         <div className="flex flex-wrap gap-4">
-//           <div className="relative cursor-pointer w-full md:w-1/2">
-//             <img
-//               src="https://assets.codepen.io/9177687/woman-ge0f199f92_640.jpg"
-//               alt="Detect pose"
-//               className="w-full"
-//               crossOrigin="anonymous"
-//               onClick={handleImageClick}
-//             />
-//           </div>
-//           <div className="relative cursor-pointer w-full md:w-1/2">
-//             <img
-//               src="https://assets.codepen.io/9177687/woman-g1af8d3deb_640.jpg"
-//               alt="Detect pose"
-//               className="w-full"
-//               crossOrigin="anonymous"
-//               onClick={handleImageClick}
-//             />
-//           </div>
-//         </div>
+      <section id="demos">
+        {/* Demo 1: Image detection */}
+        <h2 className="text-2xl font-semibold mt-8">Demo: Detecting Images</h2>
+        <p className="mb-4">
+          <b>Click on an image below</b> to see the key landmarks of the body.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <div className="relative cursor-pointer w-full md:w-1/2">
+            <img
+              src="https://assets.codepen.io/9177687/woman-ge0f199f92_640.jpg"
+              alt="Detect pose"
+              className="w-full"
+              crossOrigin="anonymous"
+              onClick={handleImageClick}
+            />
+          </div>
+          <div className="relative cursor-pointer w-full md:w-1/2">
+            <img
+              src="https://assets.codepen.io/9177687/woman-g1af8d3deb_640.jpg"
+              alt="Detect pose"
+              className="w-full"
+              crossOrigin="anonymous"
+              onClick={handleImageClick}
+            />
+          </div>
+        </div>
 
-//         {/* Demo 2: Webcam detection */}
-//         <h2 className="text-2xl font-semibold mt-8">
-//           Demo: Webcam continuous pose landmarks detection
-//         </h2>
-//         <p className="mb-4">
-//           Stand in front of your webcam to get real-time pose detection.
-//           <br />
-//           Click <b>enable webcam</b> below and grant access to the webcam if
-//           prompted.
-//         </p>
-//         <div id="liveView" className="relative">
-//           <button
-//             id="webcamButton"
-//             onClick={enableCam}
-//             className="bg-teal-700 hover:bg-teal-800 text-white font-semibold py-2 px-4 rounded mb-4"
-//           >
-//             {webcamRunning ? "DISABLE PREDICTIONS" : "ENABLE WEBCAM"}
-//           </button>
-//           <div className="relative inline-block">
-//             {/* 
-//               Add muted to the video for autoplay 
-//               and remove flipping if you prefer
-//             */}
-//             <video
-//               id="webcam"
-//               ref={videoRef}
-//               muted
-//               width="480"
-//               height="360"
-//               autoPlay
-//               playsInline
-//               style={{
-//                 transform: "scaleX(-1)", // remove if you don't want mirror
-//                 objectFit: "cover",
-//               }}
-//               className="bg-black"
-//             ></video>
-//             <canvas
-//               id="output_canvas"
-//               ref={canvasRef}
-//               width="480"
-//               height="360"
-//               style={{
-//                 position: "absolute",
-//                 left: 0,
-//                 top: 0,
-//                 transform: "scaleX(-1)", // remove if you don't want mirror
-//               }}
-//             ></canvas>
-//           </div>
-//         </div>
-//       </section>
-//     </div>
-//   );
-// };
+        {/* Demo 2: Webcam detection */}
+        <h2 className="text-2xl font-semibold mt-8">
+          Demo: Webcam continuous pose landmarks detection
+        </h2>
+        <p className="mb-4">
+          Stand in front of your webcam to get real-time pose detection.
+          <br />
+          Click <b>enable webcam</b> below and grant access to the webcam if
+          prompted.
+        </p>
+        <div id="liveView" className="relative">
+          <button
+            id="webcamButton"
+            onClick={enableCam}
+            className="bg-teal-700 hover:bg-teal-800 text-white font-semibold py-2 px-4 rounded mb-4"
+          >
+            {webcamRunning ? "DISABLE PREDICTIONS" : "ENABLE WEBCAM"}
+          </button>
+          <div className="relative inline-block">
+            {/* 
+              Add muted to the video for autoplay 
+              and remove flipping if you prefer
+            */}
+            <video
+              id="webcam"
+              ref={videoRef}
+              muted
+              width="480"
+              height="360"
+              autoPlay
+              playsInline
+              style={{
+                transform: "scaleX(-1)", // remove if you don't want mirror
+                objectFit: "cover",
+              }}
+              className="bg-black"
+            ></video>
+            <canvas
+              id="output_canvas"
+              ref={canvasRef}
+              width="480"
+              height="360"
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                transform: "scaleX(-1)", // remove if you don't want mirror
+              }}
+            ></canvas>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
 
-// export default Plank;
+export default Plank;
 
 // PoseTracker.jsx
 // import React, { useEffect, useRef, useState } from 'react';
@@ -427,111 +427,111 @@
 
 // export default PoseTracker;
 
-import React, { useRef, useEffect, useState } from 'react';
-import { Pose, POSE_CONNECTIONS, POSE_LANDMARKS } from '@mediapipe/pose';
-import { Camera } from '@mediapipe/camera_utils';
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
+// import React, { useRef, useEffect, useState } from 'react';
+// import { Pose, POSE_CONNECTIONS, POSE_LANDMARKS } from '@mediapipe/pose';
+// import { Camera } from '@mediapipe/camera_utils';
+// import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
 
-function plank() {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
+// function plank() {
+//   const videoRef = useRef(null);
+//   const canvasRef = useRef(null);
 
-  // For demonstration, we’ll keep a simple “status” message
-  const [statusMessage, setStatusMessage] = useState('Initializing...');
+//   // For demonstration, we’ll keep a simple “status” message
+//   const [statusMessage, setStatusMessage] = useState('Initializing...');
 
-  useEffect(() => {
-    // 1. Create a new Pose instance
-    const pose = new Pose({
-      locateFile: (file) => {
-        // Point to the official CDN so the WASM and supporting files can be fetched
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
-      },
-      modelComplexity: 1,
-      smoothLandmarks: true,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
+//   useEffect(() => {
+//     // 1. Create a new Pose instance
+//     const pose = new Pose({
+//       locateFile: (file) => {
+//         // Point to the official CDN so the WASM and supporting files can be fetched
+//         return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+//       },
+//       modelComplexity: 1,
+//       smoothLandmarks: true,
+//       minDetectionConfidence: 0.5,
+//       minTrackingConfidence: 0.5,
+//     });
 
-    // 2. Handle Pose results
-    pose.onResults((results) => {
-      // Logging for debugging
-      console.log('Pose results:', results);
+//     // 2. Handle Pose results
+//     pose.onResults((results) => {
+//       // Logging for debugging
+//       console.log('Pose results:', results);
 
-      // If no landmarks detected, do nothing
-      if (!results.poseLandmarks) {
-        setStatusMessage('No pose detected yet...');
-        return;
-      }
+//       // If no landmarks detected, do nothing
+//       if (!results.poseLandmarks) {
+//         setStatusMessage('No pose detected yet...');
+//         return;
+//       }
 
-      setStatusMessage('Pose detected!');
+//       setStatusMessage('Pose detected!');
 
-      // 2A. Draw the results to our canvas
-      const canvasElement = canvasRef.current;
-      const canvasCtx = canvasElement.getContext('2d');
+//       // 2A. Draw the results to our canvas
+//       const canvasElement = canvasRef.current;
+//       const canvasCtx = canvasElement.getContext('2d');
 
-      // Clear the canvas
-      canvasCtx.save();
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+//       // Clear the canvas
+//       canvasCtx.save();
+//       canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-      // Draw the camera image
-      canvasCtx.drawImage(
-        results.image,
-        0,
-        0,
-        canvasElement.width,
-        canvasElement.height
-      );
+//       // Draw the camera image
+//       canvasCtx.drawImage(
+//         results.image,
+//         0,
+//         0,
+//         canvasElement.width,
+//         canvasElement.height
+//       );
 
-      // Draw the pose landmarks
-      drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {
-        color: '#00FF00',
-        lineWidth: 4,
-      });
-      drawLandmarks(canvasCtx, results.poseLandmarks, {
-        color: '#FF0000',
-        lineWidth: 2,
-      });
+//       // Draw the pose landmarks
+//       drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {
+//         color: '#00FF00',
+//         lineWidth: 4,
+//       });
+//       drawLandmarks(canvasCtx, results.poseLandmarks, {
+//         color: '#FF0000',
+//         lineWidth: 2,
+//       });
 
-      canvasCtx.restore();
-    });
+//       canvasCtx.restore();
+//     });
 
-    // 3. Setup the camera using MediaPipe’s Camera utility
-    if (videoRef.current) {
-      // Provide the video element and the frame callback
-      const camera = new Camera(videoRef.current, {
-        onFrame: async () => {
-          // Send the current frame to the Pose model
-          await pose.send({ image: videoRef.current });
-        },
-        width: 640,  // Ensure non-zero dimensions
-        height: 480, // Ensure non-zero dimensions
-      });
-      camera.start().then(() => {
-        setStatusMessage('Camera started. Looking for a pose...');
-      }).catch((err) => {
-        console.error('Camera start failed:', err);
-        setStatusMessage('Camera start failed. Check console for details.');
-      });
-    }
-  }, []);
+//     // 3. Setup the camera using MediaPipe’s Camera utility
+//     if (videoRef.current) {
+//       // Provide the video element and the frame callback
+//       const camera = new Camera(videoRef.current, {
+//         onFrame: async () => {
+//           // Send the current frame to the Pose model
+//           await pose.send({ image: videoRef.current });
+//         },
+//         width: 640,  // Ensure non-zero dimensions
+//         height: 480, // Ensure non-zero dimensions
+//       });
+//       camera.start().then(() => {
+//         setStatusMessage('Camera started. Looking for a pose...');
+//       }).catch((err) => {
+//         console.error('Camera start failed:', err);
+//         setStatusMessage('Camera start failed. Check console for details.');
+//       });
+//     }
+//   }, []);
 
-  return (
-    <div style={{ textAlign: 'center' }}>
-      <h1>Pose Tracker</h1>
-      <p>{statusMessage}</p>
+//   return (
+//     <div style={{ textAlign: 'center' }}>
+//       <h1>Pose Tracker</h1>
+//       <p>{statusMessage}</p>
 
-      {/* The video element is hidden but used as the source for our Pose model. */}
-      <video ref={videoRef} style={{ display: 'none' }} />
+//       {/* The video element is hidden but used as the source for our Pose model. */}
+//       <video ref={videoRef} style={{ display: 'none' }} />
 
-      {/* The canvas displays the annotated frames. */}
-      <canvas
-        ref={canvasRef}
-        width={640}
-        height={480}
-        style={{ border: '1px solid black' }}
-      />
-    </div>
-  );
-}
+//       {/* The canvas displays the annotated frames. */}
+//       <canvas
+//         ref={canvasRef}
+//         width={640}
+//         height={480}
+//         style={{ border: '1px solid black' }}
+//       />
+//     </div>
+//   );
+// }
 
-export default plank;
+// export default plank;
