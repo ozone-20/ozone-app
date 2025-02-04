@@ -5,7 +5,7 @@ import React, { useRef, useEffect, useState } from 'react';
 // import { Camera } from '@mediapipe/camera_utils';
 // import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
 
-function plank() {
+export default function Plank() {
 
 
   return (
@@ -13,4 +13,4 @@ function plank() {
   );
 }
 
-export default plank;
+// export default Plank;
